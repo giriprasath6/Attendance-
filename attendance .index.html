@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mark Attendance</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 32px 24px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    }
+    h1 { font-size: 22px; color: #2d3748; margin-bottom: 8px; }
+    p  { color: #718096; font-size: 14px; margin-bottom: 24px; }
+    button {
+      width: 100%;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      background: #4299e1;
+      color: white;
+      cursor: pointer;
+      transition: .2s;
+    }
+    button:disabled { background: #cbd5e0; cursor: not-allowed; }
+    .status { margin-top: 20px; font-size: 14px; min-height: 40px; }
+    .ok  { color: #38a169; }
+    .err { color: #e53e3e; }
+    .step { text-align: left; font-size: 13px; color: #4a5568; margin-top: 20px; line-height: 1.8; }
+    .step.done { color: #38a169; }
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid #cbd5e0;
+      border-top-color: #4299e1;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>📍 Mark Your Attendance</h1>
+    <p>Stand inside the classroom. We'll verify your location.</p>
+
+    <button id="btn" onclick="start()">Tap to Mark Attendance</button>
+
+    <div class="status" id="status"></div>
+
+    <div class="step" id="step1">1️⃣ Getting location...</div>
+    <div class="step" id="step2">2️⃣ Verifying network...</div>
+    <div class="step" id="step3">3️⃣ Opening attendance form...</div>
+  </div>
+
+<script>
+/* ================= CONFIG — REPLACE THESE ================= */
+const FORM_URL    = "https://docs.google.com/forms/d/e/1FAIpQLSxxxx/viewform";
+const ENTRY_NAME  = "entry.123456789";
+const ENTRY_ROLL  = "entry.987654321";
+const ENTRY_CLASS = "entry.555111222";
+const ENTRY_LAT   = "entry.333444555";
+const ENTRY_LNG   = "entry.666777888";
+const ENTRY_CODE  = "entry.999000111";
+
+/* Auto-fill helpers (optional) — student's saved info */
+const STUDENT_NAME  = "";   // leave blank to let them type
+const STUDENT_ROLL  = "";
+const STUDENT_CLASS = "";
+/* ========================================================== */
+
+const $ = id => document.getElementById(id);
+const statusEl = $("status");
+
+function setStatus(msg, cls="") {
+  statusEl.innerHTML = msg;
+  statusEl.className = "status " + cls;
+}
+function markStep(id) { $(id).classList.add("done"); }
+
+function start() {
+  $("btn").disabled = true;
+  setStatus("<span class='spinner'></span>Please wait...");
+
+  if (!navigator.geolocation) {
+    setStatus("❌ GPS not supported on this device.", "err");
+    $("btn").disabled = false;
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(onLocation, onError, {
+    enableHighAccuracy: true,
+    timeout: 15000,
+    maximumAge: 0
+  });
+}
+
+function onLocation(pos) {
+  const lat = pos.coords.latitude.toFixed(6);
+  const lng = pos.coords.longitude.toFixed(6);
+  markStep("step1");
+  setStatus("✅ Location captured (" + lat + ", " + lng + ")");
+
+  /* --- Optional: fetch public IP --- */
+  fetch("https://api.ipify.org?format=json")
+    .then(r => r.json())
+    .then(data => {
+      markStep("step2");
+      console.log("Student IP:", data.ip);
+      openForm(lat, lng);
+    })
+    .catch(() => {
+      // IP fetch failed — continue anyway
+      markStep("step2");
+      openForm(lat, lng);
+    });
+}
+
+function openForm(lat, lng) {
+  markStep("step3");
+  setStatus("✅ Opening form... please submit!");
+
+  const url = FORM_URL +
+    "?usp=pp_url" +
+    "&" + ENTRY_NAME  + "=" + encodeURIComponent(STUDENT_NAME) +
+    "&" + ENTRY_ROLL  + "=" + encodeURIComponent(STUDENT_ROLL) +
+    "&" + ENTRY_CLASS + "=" + encodeURIComponent(STUDENT_CLASS) +
+    "&" + ENTRY_LAT   + "=" + lat +
+    "&" + ENTRY_LNG   + "=" + lng;
+
+  setTimeout(() => { window.location.href = url; }, 600);
+}
+
+function onError(err) {
+  let msg = "❌ Location error.";
+  if (err.code === 1) msg = "❌ Please ALLOW location access in your browser settings.";
+  if (err.code === 2) msg = "❌ Location unavailable. Move near a window.";
+  if (err.code === 3) msg = "❌ Timed out. Try again.";
+  setStatus(msg, "err");
+  $("btn").disabled = false;
+}
+</script>
+</body>
+</html>
