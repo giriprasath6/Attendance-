@@ -72,20 +72,20 @@
   </div>
 
 <script>
-/* ================= CONFIG — REPLACE THESE ================= */
-const FORM_URL    = "https://docs.google.com/forms/d/e/1FAIpQLSxxxx/viewform";
-const ENTRY_NAME  = "entry.123456789";
-const ENTRY_ROLL  = "entry.987654321";
-const ENTRY_CLASS = "entry.555111222";
-const ENTRY_LAT   = "entry.333444555";
-const ENTRY_LNG   = "entry.666777888";
-const ENTRY_CODE  = "entry.999000111";
+/* ================= CONFIG — YOUR FORM DETAILS ================= */
+const FORM_URL    = "https://docs.google.com/forms/d/e/1FAIpQLScQtB3qp96n0nHLKTPdxQPyKhQZG9oFcb6JLHdvetHYxDBH2A/viewform";
+const ENTRY_NAME  = "entry.1870755535";
+const ENTRY_ROLL  = "entry.1522139147";
+const ENTRY_CLASS = "entry.1983259922";
+const ENTRY_LAT   = "entry.620427495";
+const ENTRY_LNG   = "entry.1154846939";
+const ENTRY_CODE  = "entry.345030195";
 
-/* Auto-fill helpers (optional) — student's saved info */
-const STUDENT_NAME  = "";   // leave blank to let them type
+/* Auto-fill helpers (optional) */
+const STUDENT_NAME  = "";   // Leave blank for students to type
 const STUDENT_ROLL  = "";
 const STUDENT_CLASS = "";
-/* ========================================================== */
+/* ============================================================== */
 
 const $ = id => document.getElementById(id);
 const statusEl = $("status");
@@ -107,9 +107,9 @@ function start() {
   }
 
   navigator.geolocation.getCurrentPosition(onLocation, onError, {
-    enableHighAccuracy: true,
-    timeout: 15000,
-    maximumAge: 0
+    enableHighAccuracy: false,
+    timeout: 30000,
+    maximumAge: 60000
   });
 }
 
@@ -119,7 +119,6 @@ function onLocation(pos) {
   markStep("step1");
   setStatus("✅ Location captured (" + lat + ", " + lng + ")");
 
-  /* --- Optional: fetch public IP --- */
   fetch("https://api.ipify.org?format=json")
     .then(r => r.json())
     .then(data => {
@@ -128,7 +127,6 @@ function onLocation(pos) {
       openForm(lat, lng);
     })
     .catch(() => {
-      // IP fetch failed — continue anyway
       markStep("step2");
       openForm(lat, lng);
     });
@@ -153,7 +151,7 @@ function onError(err) {
   let msg = "❌ Location error.";
   if (err.code === 1) msg = "❌ Please ALLOW location access in your browser settings.";
   if (err.code === 2) msg = "❌ Location unavailable. Move near a window.";
-  if (err.code === 3) msg = "❌ Timed out. Try again.";
+  if (err.code === 3) msg = "❌ GPS taking too long. Move near a window and try again.";
   setStatus(msg, "err");
   $("btn").disabled = false;
 }
