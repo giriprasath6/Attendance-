@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About Project</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    min-height:100vh;padding:20px;color:#2d3748;
+  }
+  .card{
+    background:#fff;border-radius:24px;padding:32px 24px;
+    max-width:520px;margin:0 auto;box-shadow:0 24px 60px rgba(0,0,0,.3);
+  }
+  h1{font-size:24px;margin-bottom:8px;color:#2d3748}
+  .subtitle{color:#718096;font-size:14px;margin-bottom:24px}
+  h2{font-size:16px;margin:24px 0 12px;color:#2d3748;padding-bottom:6px;border-bottom:2px solid #edf2f7}
+  ul{list-style:none}
+  li{
+    padding:10px 0;font-size:14px;color:#4a5568;
+    display:flex;align-items:flex-start;gap:10px;line-height:1.5;
+  }
+  li::before{content:"✅";color:#38a169;flex-shrink:0}
+  .credit{
+    background:#f7fafc;border-radius:12px;padding:20px;margin-top:24px;
+    text-align:center;font-size:14px;line-height:1.8;color:#4a5568;
+  }
+  .credit strong{color:#2d3748;font-size:16px;display:block;margin-bottom:4px}
+  .badge{
+    display:inline-block;background:#ebf4ff;color:#3182ce;
+    padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;
+    margin-top:12px;
+  }
+  a{color:#4299e1;text-decoration:none}
+  a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>ℹ️ About This Project</h1>
+  <p class="subtitle">Smart Attendance System using GPS Verification</p>
+
+  <h2>🎯 Objective</h2>
+  <ul>
+    <li>Eliminate manual roll-calling during class</li>
+    <li>Prevent proxy attendance using real GPS</li>
+    <li>Auto-generate attendance reports</li>
+    <li>Provide paperless record management</li>
+  </ul>
+
+  <h2>🛠️ Tech Stack</h2>
+  <ul>
+    <li>HTML5 + CSS3 + JavaScript</li>
+    <li>HTML5 Geolocation API</li>
+    <li>Google Forms + Google Sheets</li>
+    <li>Google Apps Script (backend logic)</li>
+    <li>GitHub Pages (hosting)</li>
+  </ul>
+
+  <h2>✨ Features</h2>
+  <ul>
+    <li>QR-based check-in (under 10 seconds)</li>
+    <li>GPS radius verification (Haversine formula)</li>
+    <li>Rotating Class Code (prevents link sharing)</li>
+    <li>Duplicate entry prevention</li>
+    <li>Real-time live dashboard</li>
+    <li>Daily email report to teacher</li>
+  </ul>
+
+  <div class="credit">
+    <strong>Giriprasath. L</strong>
+    Reg No: 621525104042<br>
+    B.E. Computer Science & Engineering<br>
+    Mahendra College of Engineering<br>
+    <div class="badge">OCTOBER 2026</div>
+  </div>
+</div>
+</body>
+</html>
