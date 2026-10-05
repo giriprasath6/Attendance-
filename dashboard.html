@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Dashboard</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:#f7fafc;color:#2d3748;min-height:100vh;padding:20px;
+  }
+  .container{max-width:900px;margin:0 auto}
+  .header{
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    border-radius:20px;padding:24px;color:#fff;margin-bottom:20px;
+    box-shadow:0 10px 30px rgba(102,126,234,.3);
+  }
+  .header h1{font-size:22px;margin-bottom:4px}
+  .header p{font-size:13px;opacity:.85}
+  .stats{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;
+  }
+  .stat-card{
+    background:#fff;border-radius:16px;padding:20px 16px;text-align:center;
+    box-shadow:0 4px 12px rgba(0,0,0,.06);
+  }
+  .stat-card .num{font-size:28px;font-weight:700;margin-bottom:4px}
+  .stat-card .lbl{font-size:11px;color:#718096;text-transform:uppercase;letter-spacing:.5px}
+  .stat-card.present .num{color:#38a169}
+  .stat-card.rejected .num{color:#e53e3e}
+  .stat-card.total .num{color:#4299e1}
+  .list{
+    background:#fff;border-radius:16px;overflow:hidden;
+    box-shadow:0 4px 12px rgba(0,0,0,.06);
+  }
+  .list-header{
+    padding:16px 20px;border-bottom:1px solid #edf2f7;
+    font-weight:600;font-size:15px;display:flex;justify-content:space-between;
+    align-items:center;
+  }
+  .refresh-btn{
+    background:#ebf4ff;color:#3182ce;border:none;padding:6px 14px;
+    border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;
+  }
+  .row{
+    padding:14px 20px;display:flex;justify-content:space-between;
+    align-items:center;border-bottom:1px solid #edf2f7;
+    font-size:14px;
+  }
+  .row:last-child{border-bottom:none}
+  .row .name{font-weight:600}
+  .row .roll{font-size:11px;color:#718096;margin-top:2px}
+  .pill{
+    font-size:11px;padding:4px 10px;border-radius:20px;font-weight:600;
+  }
+  .pill.ok{background:#f0fff4;color:#38a169}
+  .pill.no{background:#fff5f5;color:#e53e3e}
+  .empty{text-align:center;padding:40px;color:#a0aec0;font-size:14px}
+  .footer{text-align:center;font-size:11px;color:#a0aec0;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>📊 Live Dashboard</h1>
+    <p id="dateLabel">Today's Attendance</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card total">
+      <div class="num" id="totalCount">0</div>
+      <div class="lbl">Total</div>
+    </div>
+    <div class="stat-card present">
+      <div class="num" id="presentCount">0</div>
+      <div class="lbl">Present</div>
+    </div>
+    <div class="stat-card rejected">
+      <div class="num" id="rejectedCount">0</div>
+      <div class="lbl">Rejected</div>
+    </div>
+  </div>
+
+  <div class="list">
+    <div class="list-header">
+      <span>Today's Submissions</span>
+      <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
+    </div>
+    <div id="listBody">
+      <div class="empty">Loading...</div>
+    </div>
+  </div>
+
+  <div class="footer">Auto-refreshes every 30 seconds</div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG: Publish your Google Sheet as CSV and paste URL below
+   File → Share → Publish to web → Select sheet → Format: CSV → Publish
+============================================================ */
+const SHEET_CSV_URL = "PASTE_YOUR_PUBLISHED_CSV_URL_HERE";
+
+async function loadData() {
+  try {
+    const res = await fetch(SHEET_CSV_URL + "&t=" + Date.now());
+    const csv = await res.text();
+    const rows = parseCSV(csv);
+    
+    const today = new Date().toLocaleDateString();
+    const todayRows = rows.filter(r => {
+      if (!r[0]) return false;
+      return new Date(r[0]).toLocaleDateString() === today;
+    });
+
+    let present = 0, rejected = 0;
+    todayRows.forEach(r => {
+      if (String(r[7]).includes("PRESENT")) present++;
+      else if (String(r[7]).includes("REJECTED")) rejected++;
+    });
+
+    document.getElementById("totalCount").textContent = todayRows.length;
+    document.getElementById("presentCount").textContent = present;
+    document.getElementById("rejectedCount").textContent = rejected;
+
+    const list = document.getElementById("listBody");
+    if (todayRows.length === 0) {
+      list.innerHTML = '<div class="empty">No submissions yet today.</div>';
+      return;
+    }
+
+    list.innerHTML = todayRows.reverse().map(r => {
+      const status = String(r[7] || "");
+      const ok = status.includes("PRESENT");
+      return `
+        <div class="row">
+          <div>
+            <div class="name">${r[1] || "Unknown"}</div>
+            <div class="roll">Roll: ${r[2] || "-"} · ${new Date(r[0]).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+          </div>
+          <span class="pill ${ok ? 'ok' : 'no'}">${ok ? '✅ PRESENT' : '❌ REJECTED'}</span>
+        </div>
+      `;
+    }).join("");
+
+  } catch (err) {
+    document.getElementById("listBody").innerHTML =
+      '<div class="empty">⚠️ Could not load data. Check CSV URL.</div>';
+  }
+}
+
+function parseCSV(text) {
+  const rows = [];
+  let cur = [], field = "", inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === '"') inQuotes = !inQuotes;
+    else if (c === ',' && !inQuotes) { cur.push(field); field = ""; }
+    else if (c === '\n' && !inQuotes) { cur.push(field); rows.push(cur); cur = []; field = ""; }
+    else field += c;
+  }
+  if (field) { cur.push(field); rows.push(cur); }
+  return rows.slice(1);
+}
+
+loadData();
+setInterval(loadData, 30000);
+</script>
+</body>
+</html>
