@@ -3,100 +3,225 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Attendance System</title>
+<title>Mark Attendance</title>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   body{
     font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
     background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
     min-height:100vh;display:flex;align-items:center;justify-content:center;
     padding:20px;color:#2d3748;
   }
-  .container{max-width:440px;width:100%}
-  .header{text-align:center;color:#fff;margin-bottom:32px}
-  .header .logo{
-    width:80px;height:80px;background:rgba(255,255,255,.15);
-    border-radius:24px;display:flex;align-items:center;justify-content:center;
-    font-size:44px;margin:0 auto 16px;backdrop-filter:blur(10px);
-    border:1px solid rgba(255,255,255,.2);
+  .card{
+    background:#fff;border-radius:24px;padding:36px 28px;max-width:440px;width:100%;
+    box-shadow:0 24px 60px rgba(0,0,0,.3);text-align:center;position:relative;
+    overflow:hidden;
   }
-  .header h1{font-size:28px;font-weight:700;margin-bottom:8px}
-  .header p{font-size:14px;opacity:.85}
-  .menu{display:flex;flex-direction:column;gap:14px}
-  .menu-item{
-    background:#fff;border-radius:18px;padding:22px 24px;
-    display:flex;align-items:center;gap:18px;
-    text-decoration:none;color:#2d3748;
-    box-shadow:0 10px 30px rgba(0,0,0,.15);
-    transition:transform .2s,box-shadow .2s;
-    cursor:pointer;
+  .card::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:6px;
+    background:linear-gradient(90deg,#4299e1,#38a169,#4299e1);
+    background-size:200% 100%;animation:slide 3s linear infinite;
   }
-  .menu-item:active{transform:scale(.98)}
-  .menu-item .icon{
-    width:52px;height:52px;border-radius:14px;
-    display:flex;align-items:center;justify-content:center;
-    font-size:26px;flex-shrink:0;
+  @keyframes slide{to{background-position:-200% 0}}
+  .icon{font-size:56px;margin-bottom:12px;display:block;animation:bounce 2s ease infinite}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  h1{font-size:24px;font-weight:700;margin-bottom:8px;letter-spacing:-.5px}
+  .sub{color:#718096;font-size:14px;line-height:1.6;margin-bottom:28px}
+  button{
+    width:100%;padding:18px;font-size:16px;font-weight:600;border:none;
+    border-radius:14px;background:linear-gradient(135deg,#4299e1,#3182ce);
+    color:#fff;cursor:pointer;transition:transform .15s,box-shadow .15s;
+    box-shadow:0 8px 20px rgba(66,153,225,.35);
   }
-  .icon-1{background:#ebf4ff;color:#3182ce}
-  .icon-2{background:#f0fff4;color:#38a169}
-  .icon-3{background:#fffaf0;color:#dd6b20}
-  .icon-4{background:#faf5ff;color:#805ad5}
-  .menu-item .text h3{font-size:16px;font-weight:600;margin-bottom:2px}
-  .menu-item .text p{font-size:12px;color:#718096}
-  .footer{text-align:center;color:rgba(255,255,255,.7);font-size:12px;margin-top:28px}
-  .badge{
-    display:inline-block;background:rgba(255,255,255,.2);
-    padding:6px 14px;border-radius:20px;font-size:11px;
-    color:#fff;margin-top:12px;letter-spacing:.5px;
+  button:active{transform:scale(.98)}
+  button:disabled{background:#cbd5e0;box-shadow:none;cursor:not-allowed}
+  .status{
+    margin-top:22px;font-size:14px;min-height:44px;line-height:1.5;
+    padding:12px;border-radius:10px;background:#f7fafc;transition:.3s;
   }
+  .status.ok{background:#f0fff4;color:#22543d}
+  .status.err{background:#fff5f5;color:#742a2a}
+  .steps{text-align:left;margin-top:24px;font-size:13px;color:#a0aec0;line-height:2.2}
+  .steps .active{color:#4299e1;font-weight:600}
+  .steps .done{color:#38a169;font-weight:600}
+  .spinner{
+    display:inline-block;width:14px;height:14px;border:2px solid #cbd5e0;
+    border-top-color:#4299e1;border-radius:50%;animation:spin .8s linear infinite;
+    vertical-align:-2px;margin-right:8px;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .progress{
+    height:4px;background:#edf2f7;border-radius:2px;overflow:hidden;margin-top:24px;
+  }
+  .progress-bar{
+    height:100%;background:linear-gradient(90deg,#4299e1,#38a169);
+    width:0%;transition:width .4s ease;border-radius:2px;
+  }
+  .footer{margin-top:20px;font-size:11px;color:#cbd5e0}
+  .success-screen{
+    display:none;padding:20px 0;
+  }
+  .success-screen.show{display:block}
+  .success-icon{
+    font-size:72px;margin-bottom:16px;animation:pop .5s ease;
+  }
+  @keyframes pop{
+    0%{transform:scale(0);opacity:0}
+    50%{transform:scale(1.2)}
+    100%{transform:scale(1);opacity:1}
+  }
+  .success-screen h2{font-size:22px;color:#38a169;margin-bottom:8px}
+  .success-screen p{font-size:14px;color:#718096;margin-bottom:20px}
+  .info-box{
+    background:#f7fafc;border-radius:12px;padding:16px;margin-top:16px;
+    font-size:13px;text-align:left;color:#4a5568;line-height:1.8;
+  }
+  .info-box strong{color:#2d3748}
 </style>
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <div class="logo">📍</div>
-    <h1>Smart Attendance</h1>
-    <p>GPS-verified classroom attendance</p>
-    <div class="badge">MAHENDRA COLLEGE OF ENGINEERING</div>
+<div class="card">
+
+  <!-- Main Screen -->
+  <div id="mainScreen">
+    <span class="icon">📍</span>
+    <h1>Mark Your Attendance</h1>
+    <p class="sub">Stand inside the classroom.<br>We'll verify your location before marking you present.</p>
+
+    <button id="btn" onclick="start()">Tap to Mark Attendance</button>
+
+    <div class="status" id="status">Ready when you are.</div>
+
+    <div class="progress"><div class="progress-bar" id="bar"></div></div>
+
+    <div class="steps" id="steps">
+      <div id="s1">○ Getting your location</div>
+      <div id="s2">○ Verifying network</div>
+      <div id="s3">○ Opening attendance form</div>
+    </div>
+
+    <div class="footer">🔒 Your data is only used for attendance.</div>
   </div>
 
-  <div class="menu">
-    <a href="student.html" class="menu-item">
-      <div class="icon icon-1">✅</div>
-      <div class="text">
-        <h3>Mark Attendance</h3>
-        <p>For students — scan & mark present</p>
-      </div>
-    </a>
-
-    <a href="dashboard.html" class="menu-item">
-      <div class="icon icon-2">📊</div>
-      <div class="text">
-        <h3>Live Dashboard</h3>
-        <p>See today's attendance in real-time</p>
-      </div>
-    </a>
-
-    <a href="YOUR_GOOGLE_SHEET_URL" class="menu-item">
-      <div class="icon icon-3">📋</div>
-      <div class="text">
-        <h3>Attendance Records</h3>
-        <p>Full attendance log sheet</p>
-      </div>
-    </a>
-
-    <a href="about.html" class="menu-item">
-      <div class="icon icon-4">ℹ️</div>
-      <div class="text">
-        <h3>About Project</h3>
-        <p>Details, features & credits</p>
-      </div>
-    </a>
+  <!-- Success Screen -->
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">✅</div>
+    <h2>Location Verified!</h2>
+    <p>Redirecting you to the attendance form...</p>
+    <div class="info-box">
+      <strong>Latitude:</strong> <span id="outLat">—</span><br>
+      <strong>Longitude:</strong> <span id="outLng">—</span><br>
+      <strong>Status:</strong> Inside classroom ✅
+    </div>
   </div>
 
-  <div class="footer">
-    © 2026 Giriprasath.L · Reg: 621525104042
-  </div>
 </div>
+
+<script>
+/* ================= CONFIG — YOUR FORM DETAILS ================= */
+const FORM_URL    = "https://docs.google.com/forms/d/e/1FAIpQLScQtB3qp96n0nHLKTPdxQPyKhQZG9oFcb6JLHdvetHYxDBH2A/viewform";
+const ENTRY_NAME  = "entry.1870755535";
+const ENTRY_ROLL  = "entry.1522139147";
+const ENTRY_CLASS = "entry.1983259922";
+const ENTRY_LAT   = "entry.620427495";
+const ENTRY_LNG   = "entry.1154846939";
+const ENTRY_CODE  = "entry.345030195";
+
+const STUDENT_NAME  = "";
+const STUDENT_ROLL  = "";
+const STUDENT_CLASS = "";
+/* ============================================================== */
+
+const $ = id => document.getElementById(id);
+const st = $("status");
+const bar = $("bar");
+
+function setStatus(msg, type="") {
+  st.innerHTML = msg;
+  st.className = "status " + type;
+}
+function setStep(id, state) {
+  const el = $(id);
+  el.className = state;
+  const icons = {active:"⏳ ", done:"✅ ", "":"○ "};
+  el.innerHTML = icons[state] + el.innerHTML.replace(/^[○✅⏳]\s*/, "");
+}
+function setProgress(pct) { bar.style.width = pct + "%"; }
+
+function start() {
+  $("btn").disabled = true;
+  setStatus("<span class='spinner'></span>Requesting location...");
+  setStep("s1", "active");
+  setProgress(10);
+
+  if (!navigator.geolocation) {
+    setStatus("❌ GPS not supported on this device.", "err");
+    $("btn").disabled = false;
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(onLocation, onError, {
+    enableHighAccuracy: false,
+    timeout: 30000,
+    maximumAge: 60000
+  });
+}
+
+function onLocation(pos) {
+  const lat = pos.coords.latitude.toFixed(6);
+  const lng = pos.coords.longitude.toFixed(6);
+
+  setStep("s1", "done");
+  setProgress(40);
+  setStatus("✅ Location captured: " + lat + ", " + lng);
+
+  setStep("s2", "active");
+  fetch("https://api.ipify.org?format=json")
+    .then(r => r.json())
+    .then(d => {
+      console.log("[Attendance] IP:", d.ip);
+      setStep("s2", "done");
+      setProgress(70);
+      openForm(lat, lng);
+    })
+    .catch(() => {
+      setStep("s2", "done");
+      setProgress(70);
+      openForm(lat, lng);
+    });
+}
+
+function openForm(lat, lng) {
+  setStep("s3", "active");
+  setProgress(100);
+  setStatus("✅ Opening form... please submit!");
+
+  // Show success screen
+  $("outLat").textContent = lat;
+  $("outLng").textContent = lng;
+  $("mainScreen").style.display = "none";
+  $("successScreen").classList.add("show");
+
+  const url = FORM_URL + "?usp=pp_url"
+    + "&" + ENTRY_NAME  + "=" + encodeURIComponent(STUDENT_NAME)
+    + "&" + ENTRY_ROLL  + "=" + encodeURIComponent(STUDENT_ROLL)
+    + "&" + ENTRY_CLASS + "=" + encodeURIComponent(STUDENT_CLASS)
+    + "&" + ENTRY_LAT   + "=" + lat
+    + "&" + ENTRY_LNG   + "=" + lng;
+
+  setTimeout(() => { window.location.href = url; }, 1500);
+}
+
+function onError(err) {
+  let msg = "❌ Location error.";
+  if (err.code === 1) msg = "❌ Please ALLOW location access in browser settings.";
+  if (err.code === 2) msg = "❌ Location unavailable. Move near a window and retry.";
+  if (err.code === 3) msg = "❌ GPS taking too long. Move near a window and try again.";
+  setStatus(msg, "err");
+  setStep("s1", "");
+  setProgress(0);
+  $("btn").disabled = false;
+}
+</script>
 </body>
 </html>
